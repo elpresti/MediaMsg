@@ -14,7 +14,8 @@ try{
 	parse_str($_SERVER['QUERY_STRING'], $params);
 	$targetUrl = ( (isset($params['url'])) ? urldecode($params['url']) : null );
 	$outFileName = ( (isset($params['outfilename'])) ? urldecode($params['outfilename']) : null );
-	$cropsArray = ( (isset($params['crops'])) ? array_map('trim', explode(',', $params['crops'])) : null ); 
+	$cropsArray = ( (isset($params['crops'])) ? array_map('trim', explode(',', $params['crops'])) : null );
+	$scaleOut = ( (isset($params['scaleOut'])) ? $params['scaleOut'] : null );
 	//no usar urldecode para $params['crops'], ocaciona problemas
 	//SMN: 990x434+538+980,456x348+346+1466,456x348+802+1466,462x347+1258+1466
 	if ($targetUrl == null){
@@ -44,7 +45,11 @@ try{
 	if ($cropsArray != null){ 
 		$i = 1;
 		foreach ($cropsArray as $cropItem){
-			$command = "convert $outFileName.png -crop ".$cropItem." ".$outFileName."_".$i.".png";
+			$command = "convert $outFileName.png -crop ".$cropItem;
+			if ($scaleOut != null){
+				$command .= " -scale ".$scaleOut." ";
+			}
+			$command .= " ".$outFileName."_".$i.".png";
 			$outMsg.="Executing this command: ".$command." | ";
 			exec($command, $output, $ret);
 			if ($ret){

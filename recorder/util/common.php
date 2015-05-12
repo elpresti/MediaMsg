@@ -11,7 +11,7 @@
 				$filename = substr( $filename, 0, $posPunto );
 			}
 		}else{
-			$hoy = date("Y-m-d__H_i_s");
+			$hoy = date("Y_m_d__H_i_s");
 			$filename="Msg_".$hoy;
 		}
 		if ($mediaType==1){

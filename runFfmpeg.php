@@ -29,7 +29,7 @@ if (contains($outputFilename.$audioInput.$videoInput.$logFile, $dangerousChars))
 
 /* ---------- TEST ---------------- */
 //$jsonFile = "/var/www/mediamsg/queue.json";
-//getProcessingQueue($jsonFile);
+//QueueManager::getInstance()->getProcessingQueue($jsonFile);
 //addItemToQueue($jsonFile);
 echo "<br>Running encoder with $audioInput and $videoInput<br>";
 //$db = new JsonDB("./my_json_database/"); //parameter => directory to your json files
@@ -53,8 +53,8 @@ if (isset($params['addItemToQueue'])  &&  $params['addItemToQueue'] == "true"){
 			$outputMediaType = FfmpegManager::getInstance(new JsonDB("./"))->_MEDIA_TYPE_3;
 		}
 	}
-	//echo FfmpegManager::getInstance(new JsonDB("./"))->addItemToQueue($audioInput, $videoInput,null,null,null,null,null);
-	echo FfmpegManager::getInstance(new JsonDB("./"))->addItemToQueue($audioInput, $videoInput, $photosInput,$outputMediaType,null,null,null,null,null);
+	//echo QueueManager::getInstance(new JsonDB("./"))->addItemToQueue($audioInput, $videoInput,null,null,null,null,null);
+	echo QueueManager::getInstance(new JsonDB("./"))->addItemToQueue($audioInput, $videoInput, $photosInput,$outputMediaType,null,null,null,null,null);
 	exit();
 }
 
@@ -65,14 +65,14 @@ if (isset($params['processQueue'])  &&  $params['processQueue'] == "true"){
 
 if (isset($params['getProcessingStatus'])  &&  $params['getProcessingStatus'] > 0){
 	echo "<br>getQueueItemById: <br>";
-	$queueItem = FfmpegManager::getInstance()->getQueueItemById($params['getProcessingStatus']);
+	$queueItem = QueueManager::getInstance()->getQueueItemById($params['getProcessingStatus']);
 	if ($queueItem == null){
 		echo "The requested QueueItem doesn't exists in our Processing Table";
 	}else{
 		echo print_r($queueItem);
 		echo "<br><br>checkProcessingStatus(): <br>";
-		$queueItem = FfmpegManager::getInstance()->checkProcessingStatus($queueItem);
-		FfmpegManager::getInstance()->updateItemOnQueue($queueItem);
+		$queueItem = QueueManager::getInstance()->checkProcessingStatus($queueItem);
+		QueueManager::getInstance()->updateItemOnQueue($queueItem);
 		echo print_r( $queueItem );
 	}
 	exit();
@@ -80,7 +80,7 @@ if (isset($params['getProcessingStatus'])  &&  $params['getProcessingStatus'] > 
 
 if (isset($params['isProcessRunning'])  &&  $params['isProcessRunning'] > 0){
 	echo "<br>isProcessRunning(): <br>";
-	if (FfmpegManager::getInstance()->is_process_running($params['isProcessRunning'])) {
+	if (QueueManager::getInstance()->is_process_running($params['isProcessRunning'])) {
 		echo "YES! It's running";
 	}else{
 		echo "NO! It's not running";

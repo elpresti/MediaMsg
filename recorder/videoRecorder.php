@@ -8,7 +8,25 @@
         body {
             background-color:#f00;
         }
+        #statusMsg{
+				padding: 6px 14px;
+				border: 1px solid #EEE;
+				margin: 0px 10px 10px 0px;
+				color: #07A;
+				font-family: "freight-text-pro",Georgia,Cambria,"Times New Roman",Times,serif;
+				font-size: 22px;
+				line-height: 1.5;
+				letter-spacing: 0.01rem;
+				font-weight: 400;
+		}
     </style>
+    
+<?php 
+	if (isset($_GET['filename']) &&  (strlen($_GET['filename'])>0) ) {
+		$filename = $_GET['filename'];
+	}
+	require('util/common.php');
+?>
     <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
     <script type="text/javascript" src="js/common.js"></script>
@@ -57,8 +75,6 @@
 				video.src = 'somevideo.webm'; // fallback.
 			}
     	}
-
-    	
 
     	function getMediaSources(){
     		if (typeof MediaStreamTrack === 'undefined'){

@@ -127,19 +127,20 @@
 		var imgData = convertCanvasToImage(canvas);
 		$.ajax({ 
 			type: "POST", 
-			url: "ftpUploader.php?mediaType=3&filename=<?php echo getFileName(3); ?>",
+			url: "../mediaMsgController.php?action=savetmpimg&outputFilename=<?php echo getFileName(3); ?>",
 			datatype: 'image/png',
 			data: {
 				imageData : imgData.currentSrc
 			},
 			success: function (data) {
 				//$('#CaptchaImg').attr('src', data);
+				console.log(data);
 				var jsonResponse = JSON && JSON.parse(data) || $.parseJSON(data);
 				if (jsonResponse.statusCode==200){
 					showOnlyTakeNewBtn();
 					changeStatusMsg("Archivo subido!");
 				}else{
-					changeStatusMsg("Error! -> Details: "+jsonResponse);
+					changeStatusMsg("Error! -> Details: "+jsonResponse.msg);
 				}
 			}
 		});

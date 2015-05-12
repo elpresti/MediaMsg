@@ -3,37 +3,44 @@
 // comment 5
 final class FileManager{
     private $_ffmpegManagerClass = null;
-    public $_outMsg="NO MESSAGE";
-    public $_outStatusCode=500;
-    private $_fileName=null;
+    public static $_outMsg="";
+    public static $_outStatusCode=500;
+    public static $_fileName=null;
     private $_ftp_server="201.219.68.21";
     private $_ftp_user_name="voicemsg";
     private $_ftp_user_pass="voicemsg";	
 
 
-    public static function getInstance($_ffmpegManagerClass){
+    public static function getInstance(){
         static $inst = null;
         if ($inst === null) {
-            $inst = new FileManager($_ffmpegManagerClass);
+            $inst = new FileManager();
         }
         return $inst;
     }
 
-    private function __construct($_ffmpegManagerClass){
-        $this->_ffmpegManagerClass = $_ffmpegManagerClass;
+    private function __construct(){
     }
 
 	public function saveTmpImageFile($data){
-		//$data = $_POST["imageData"];
-		list($type, $data) = explode(';', $data);
-		list(, $data)      = explode(',', $data);
-		$data = base64_decode($data);
-		$filepath = $this->_ffmpegManagerClass->_appTmpFolderPath.$this->_fileName;
-		file_put_contents($filepath, $data);
+		try{
+			//$data = $_POST["imageData"];
+			list($type, $data) = explode(';', $data);
+			list(, $data)      = explode(',', $data);
+			$data = base64_decode($data);
+			$filepath = QueueManager::$_appTmpFolderPath.FileManager::$_fileName;
+			if (file_put_contents($filepath, $data) == false ){
+				FileManager::$_outStatusCode=500;
+				FileManager::$_outMsg .='Error al intentar escribir en disco el archivo recibido usando el filePath: '.$filepath;
+			}
+		}catch (Exception $e) {
+			FileManager::$_outStatusCode=500;
+		    FileManager::$_outMsg .='Error! Excepcion capturada: '.$e->getMessage()."\n";
+		}
 	}
 
 	public function printResultInJson(){
-		$arr = array('statusCode' => $this->_outStatusCode, 'msg' => utf8_encode($this->_outMsg)); //json_encode() will convert to null any non-utf8 String
+		$arr = array('statusCode' => FileManager::$_outStatusCode, 'msg' => utf8_encode(FileManager::$_outMsg)); //json_encode() will convert to null any non-utf8 String
 		echo json_encode($arr);
 	}
 
@@ -42,8 +49,8 @@ final class FileManager{
 		$data = substr($postData, strpos($postData, ",") + 1);
 		// decode it
 		$decodedData = base64_decode($data);
-		//$this->_fileName = urldecode($_POST['fname']);
-		$filepath = $this->_ffmpegManagerClass->_appTmpFolderPath.$this->_fileName;
+		//FileManager::$_fileName = urldecode($_POST['fname']);
+		$filepath = QueueManager::$_appTmpFolderPath.FileManager::$_fileName;
 		file_put_contents($filepath, $decodedData);
 	}
 
@@ -51,18 +58,23 @@ final class FileManager{
 		$canDoIt = false;
 		try{
 			if ($filepath==null){
-				$this->_outStatusCode=500;
-				$this->_outMsg="Error, no se ha subído el archivo al FTP ya que el filepath espicifacado es nulo";
+				FileManager::$_outStatusCode=500;
+				FileManager::$_outMsg .="Error, no se ha subído el archivo al FTP ya que el filepath espicifacado es nulo";
 			}
 			
 			//date_default_timezone_set('America/Argentina/Buenos_Aires');
 			//$hoy = date("Y-m-d__H_i_s");
 			//$alternativeFilename="Msg_".$hoy.".wav";
 			
-			$pathParts = explode("/", $filepath, 6);
-			$this->_fileName = $pathParts[sizeof($pathParts)-1];
-			$local_file = $pathParts[sizeof($pathParts)-2]."/".$this->_fileName; //consider tmp folder
-			$remote_file = $this->_fileName;
+			if ( strpos($filepath, "/") ){
+				$pathParts = explode("/", $filepath, 6);
+				FileManager::$_fileName = $pathParts[sizeof($pathParts)-1];
+				$local_file = $pathParts[sizeof($pathParts)-2]."/".FileManager::$_fileName; //consider tmp folder
+			}else{
+				FileManager::$_fileName = $filepath;
+				$local_file = QueueManager::$_appTmpFolderPath.FileManager::$_fileName;
+			}
+			$remote_file = FileManager::$_fileName;
 	
 			// establecer una conexion basica
 			$conn_id = ftp_connect($this->_ftp_server);
@@ -74,20 +86,19 @@ final class FileManager{
 			 
 			// cargar un archivo
 			if (ftp_put($conn_id, $remote_file, $local_file, FTP_BINARY)) {
-				$this->_outMsg="Se ha cargado $local_file con exito.\n Se ha borrado el archivo del servidor web";
-				$this->_outStatusCode=200;
+				FileManager::$_outMsg .="Se ha cargado $local_file con exito.\n Se ha borrado el archivo del servidor web";
+				FileManager::$_outStatusCode=200;
 				$canDoIt=true;
 			} else {
-				$this->_outStatusCode=500;
-				$this->_outMsg="Hubo un problema durante la transferencia de $local_file";
+				FileManager::$_outStatusCode=500;
+				FileManager::$_outMsg .="Hubo un problema durante la transferencia de localFile: $local_file con remoteFile: $remote_file";
 			}
 	
 			// cerrar la conexion ftp
 			ftp_close($conn_id);
 		}catch (Exception $e) {
-			$this->_outStatusCode=500;
-		    $this->_outMsg='Error! Excepcion capturada: '.$e->getMessage()."\n";
-			printResultInJson();
+			FileManager::$_outStatusCode=500;
+		    FileManager::$_outMsg .='Error! Excepcion capturada: '.$e->getMessage()."\n";
 		}
 		return $canDoIt;
 	}
@@ -95,19 +106,19 @@ final class FileManager{
 	public function deleteLocalFiles($filePath=null){ //change to array of $filePaths...
 		$canDoIt=false;
 		if ($filePath == null){
-			$this->_outStatusCode=500;
-			$this->_outMsg="Error! NO se ha borrado el archivo $filePath del servidor web. El filePath recibido es nulo";
+			FileManager::$_outStatusCode=500;
+			FileManager::$_outMsg .="Error! NO se ha borrado el archivo $filePath del servidor web. El filePath recibido es nulo";
 			return $canDoIt;
 		}
 		$pathParts = explode("/", $filepath, 6);
 		$fileName = $pathParts[sizeof($pathParts)-1];
 		if (unlink($pathParts[sizeof($pathParts)-2]."/".$fileName)){ //consider tmp folder
-			$this->_outStatusCode=200;
-			$this->_outMsg="Se ha borrado el archivo $local_file con exito.";
+			FileManager::$_outStatusCode=200;
+			FileManager::$_outMsg .="Se ha borrado el archivo $local_file con exito.";
 			$canDoIt=true;
 		}else{
-			$this->_outStatusCode=500;
-			$this->_outMsg="Error! NO se ha borrado el archivo $filePath del servidor web";
+			FileManager::$_outStatusCode=500;
+			FileManager::$_outMsg .="Error! NO se ha borrado el archivo $filePath del servidor web";
 		}
 		return $canDoIt;
 	}
@@ -135,8 +146,8 @@ final class FileManager{
 			}
 			printResultInJson();
 		} catch (Exception $e) {
-			$this->_outStatusCode=500;
-		    $this->_outMsg='Excepcion capturada: '.$e->getMessage()."\n";
+			FileManager::$_outStatusCode=500;
+		    FileManager::$_outMsg .='Excepcion capturada: '.$e->getMessage()."\n";
 			printResultInJson();
 		}
 	}
