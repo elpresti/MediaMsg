@@ -31,8 +31,8 @@
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/modernizr/2.8.3/modernizr.min.js"></script>
     <script type="text/javascript" src="js/common.js"></script>
     <script>
-    	var gUM = Modernizr.prefixed('getUserMedia', navigator);
-
+    	
+/*
 		var constraints = {
 		  video: {
 		    mandatory: {
@@ -45,13 +45,19 @@
 	      	optional: [{sourceId: audioSource}]
 	      }
 		};
-
-    	if (hasGetUserMediaAvoidVendor()){
-    		$("#oldWay").hide();
-    		$( ".inner" ).append( "<video autoplay></video>" );
-    	}else{
-    		$("#oldWay").show();
-    	}
+*/
+		var gUM = Modernizr.prefixed('getUserMedia', navigator);
+		function init(){
+			if (hasGetUserMediaAvoidVendor()){
+				$("#oldWay").hide();
+				$( "#videoElementsContainer" ).append( "<h1>getUserMedia() is supported on this browser!</h1>" );
+				$( "#videoElementsContainer" ).append( "<video id=\"video\" width=\"320\" height=\"240\" autoplay></video>" );
+				$( "#videoElementsContainer" ).append( "<button id=\"getMediaSourcesBtn\" onclick=\"getMediaSources();\">getMediaSources()</button>" );
+			}else{
+				$( "#videoElementsContainer" ).append( "<h1>getUserMedia() is NOT supported on this browser...</h1>" );
+				$("#oldWay").show();
+			}
+		}
 
 		function successGettingCamcorder(localMediaStream){
  	    	video.src = window.URL.createObjectURL(localMediaStream);
@@ -70,6 +76,7 @@
     	function activateCamcorder(){
 			var video = document.querySelector('video');
 			if (hasGetUserMediaAvoidVendor()){
+				var constraints = { video: true, audio: true };
 				gUM(constraints, successGettingCamcorder, fallbackGettingCamcorder);
 			} else {
 				video.src = 'somevideo.webm'; // fallback.
@@ -81,27 +88,47 @@
 				alert('This browser does not support MediaStreamTrack.\n\nPlease, use a decent browser.');
 			} else {
 				MediaStreamTrack.getSources(function(sourceInfos) {
-				var audioSource = null;
-				var videoSource = null;
+					var audioSource = null;
+					var videoSource = null;
+	
+					for (var i = 0; i != sourceInfos.length; ++i) {
+					  	var sourceInfo = sourceInfos[i];
+						if (sourceInfo.kind === 'audio') {
+					      console.log(sourceInfo.id, sourceInfo.label || 'microphone');
+	
+					      audioSource = sourceInfo.id;
+					    } else if (sourceInfo.kind === 'video') {
+					      console.log(sourceInfo.id, sourceInfo.label || 'camera');
+	
+					      videoSource = sourceInfo.id;
+					    } else {
+					      console.log('Some other kind of source: ', sourceInfo);
+					    }
+					    if (audioSource != null  &&  videoSource != null){
+						    break;
+					    }
+					  }
 
-				for (var i = 0; i != sourceInfos.length; ++i) {
-				  	var sourceInfo = sourceInfos[i];
-					if (sourceInfo.kind === 'audio') {
-				      console.log(sourceInfo.id, sourceInfo.label || 'microphone');
-
-				      audioSource = sourceInfo.id;
-				    } else if (sourceInfo.kind === 'video') {
-				      console.log(sourceInfo.id, sourceInfo.label || 'camera');
-
-				      videoSource = sourceInfo.id;
-				    } else {
-				      console.log('Some other kind of source: ', sourceInfo);
-				    }
-				  }
-
-				  sourceSelected(audioSource, videoSource);
+				  	sourceSelected(audioSource, videoSource);
 				});
 			}
+    	}
+
+    	function sourceSelected(audioSource, videoSource){
+    		var constraints = {
+    				  video: {
+    				    mandatory: {
+    				      maxWidth: 640,
+    				      maxHeight: 360
+    				    },
+    				    optional: [{sourceId: videoSource}]
+    				  },
+    				  audio: {
+    			      	optional: [{sourceId: audioSource}]
+    			      }
+    				};
+    		//navigator.getUserMedia(constraints, successGettingCamcorder, fallbackGettingCamcorder);
+    		gUM(constraints, successGettingCamcorder, fallbackGettingCamcorder);
     	}
 
     </script>
@@ -120,6 +147,11 @@
 	<div id="videoElementsContainer">
 
 	</div>
-
+	
+	<script>
+		$( document ).ready(function() {
+		    init();
+		});
+	</script>
 </body>
 </html>

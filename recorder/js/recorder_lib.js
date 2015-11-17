@@ -221,7 +221,7 @@ DEALINGS IN THE SOFTWARE.
           fd.append('data', event.target.result);
           $.ajax({
             type: 'POST',
-            url: "ftpUploader.php?mediaType=4&filename="+filename,
+            url: "../mediaMsgController.php?action=savetmpaudio&outputFilename="+filename,
             data: fd,
             processData: false,
             contentType: false

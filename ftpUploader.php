@@ -43,7 +43,7 @@ function saveTmpMP3File(){
 	file_put_contents($filepath, $decodedData);
 }
 
-function uploadFile(){
+function uploadFile($sourceFilepath=null,$destinationFilename=null){
 	global $outMsg, $outStatusCode;
 	$ftp_server="201.219.68.21";
 	$ftp_user_name="voicemsg";
@@ -55,9 +55,26 @@ function uploadFile(){
 
 	//Levanto el filename desde el parametro, o en caso de que no haya sido especificado, asigno uno por defecto
 	parse_str($_SERVER['QUERY_STRING'], $params);
-	$filename = isset($params['filename']) ? $params['filename'] : $alternativeFilename;
-
-	$local_file = "messages/".$filename;
+	if ($destinationFilename == null){
+		if ($sourceFilepath != null){//me quedo solo con la ultima parte
+			$pos = strrpos($sourceFilepath, "/");
+		    if (!$pos){
+		      $filename = $sourceFilepath;
+		    }else{
+		      $filename = substr($sourceFilepath,$pos+1);//busco la ultima barra y traigo desde ahi hasta el final
+		    }
+		}else{
+			$filename = isset($params['filename']) ? $params['filename'] : $alternativeFilename;
+		}
+	}else{
+		$filename = $destinationFilename;
+	}
+	
+	if ($sourceFilepath == null){
+		$local_file = "messages/".$filename;
+	}else{
+		$local_file = $sourceFilepath;
+	}
 	//$local_file = $_FILES["messages/".$filename];
 	$remote_file = $filename;
 
@@ -105,7 +122,11 @@ try {
 			}
 		}
 	}else{
-		$outMsg="mediaType not specified!";
+		if ( isset($_GET['avoidMediaType'])  &&  $_GET['avoidMediaType']==true ){
+			uploadFile($_GET['sourcefilepath'],$_GET['destinationfilename']);
+		}else{
+			$outMsg="mediaType not specified!";
+		}
 	}
 	printResultInJson();
 } catch (Exception $e) {
