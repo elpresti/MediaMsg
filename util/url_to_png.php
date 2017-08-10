@@ -27,7 +27,8 @@ try{
 		$outFileName = md5($targetUrl);
 	}
 	$outFileName = "//var/www/mediamsg/tmp/".$outFileName;
-	$command = '//usr/local/bin/wkhtmltopdf.sh "'.$targetUrl.'" '.$outFileName.'.pdf';
+	//$command = '//usr/local/bin/wkhtmltopdf.sh "'.$targetUrl.'" '.$outFileName.'.pdf';
+	$command = 'wkhtmltopdf "'.$targetUrl.'" '.$outFileName.'.pdf';
 	$outMsg=" |  Executing this command: ".$command." | ";
 	exec($command, $output, $ret);
 	if ($ret) {
