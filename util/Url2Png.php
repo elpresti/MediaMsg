@@ -60,7 +60,9 @@ final class Url2Png{
 				$scaleOut = urldecode($scaleOut);
 			}
 			$outFileName = "//var/www/mediamsg/tmp/".$outFileName;
-			$command = '//usr/local/bin/wkhtmltopdf.sh "'.$targetUrl.'" '.$outFileName.'.pdf';
+			//$command = '//usr/local/bin/wkhtmltopdf.sh "'.$targetUrl.'" '.$outFileName.'.pdf';
+			$command = 'wkhtmltopdf "'.$targetUrl.'" '.$outFileName.'.pdf';
+			
 			Url2Png::$_outMsg=" |  Executing this command: ".$command." | ";
 			exec($command, $output, $ret);
 			if ($ret) {
