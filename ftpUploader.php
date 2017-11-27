@@ -45,9 +45,12 @@ function saveTmpMP3File(){
 
 function uploadFile($sourceFilepath=null,$destinationFilename=null){
 	global $outMsg, $outStatusCode;
-	$ftp_server="201.219.68.21";
-	$ftp_user_name="voicemsg";
-	$ftp_user_pass="voicemsg";	
+	//$ftp_server="201.219.68.21";
+	//$ftp_user_name="voicemsg";
+	//$ftp_user_pass="voicemsg";	
+	$ftp_server="192.168.0.10";
+	$ftp_user_name="webcontent";
+	$ftp_user_pass="2wsx3edc";	
 	
 	date_default_timezone_set('America/Argentina/Buenos_Aires');
 	$hoy = date("Y-m-d__H_i_s");
@@ -77,7 +80,7 @@ function uploadFile($sourceFilepath=null,$destinationFilename=null){
 	}
 	//$local_file = $_FILES["messages/".$filename];
 	$remote_file = $filename;
-
+try{
 	// establecer una conexión básica
 	$conn_id = ftp_connect($ftp_server);
 	
@@ -99,7 +102,10 @@ function uploadFile($sourceFilepath=null,$destinationFilename=null){
 		$outStatusCode=500;
 		$outMsg="Hubo un problema durante la transferencia de $local_file";
 	}
-
+}catch(Exception $e){
+		$outStatusCode=500;
+		$outMsg="Hubo un problema durante la transferencia de $local_file".(string)$e;
+}
 	// cerrar la conexión ftp
 	ftp_close($conn_id);
 }

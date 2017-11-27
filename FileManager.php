@@ -6,9 +6,9 @@ final class FileManager{
     public static $_outMsg="";
     public static $_outStatusCode=500;
     public static $_fileName=null;
-    private $_ftp_server="201.219.68.21";
-    private $_ftp_user_name="voicemsg";
-    private $_ftp_user_pass="voicemsg";	
+    private $_ftp_server="192.168.0.10";
+    private $_ftp_user_name="webcontent";
+    private $_ftp_user_pass="2wsx3edc";	
     public static $_urlParams=null;
 
 
@@ -72,7 +72,7 @@ final class FileManager{
 		try{
 			if ($filepath==null){
 				FileManager::$_outStatusCode=500;
-				FileManager::$_outMsg .="Error, no se ha subído el archivo al FTP ya que el filepath espicifacado es nulo";
+				FileManager::$_outMsg .="Error, no se ha subï¿½do el archivo al FTP ya que el filepath espicifacado es nulo";
 			}
 			
 			//date_default_timezone_set('America/Argentina/Buenos_Aires');
